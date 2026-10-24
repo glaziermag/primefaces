@@ -76,64 +76,33 @@ class ConfirmDialog003ProbeTest extends AbstractPrimePageTest {
 
     @Test
     @Order(2)
-    void realistic() throws Exception {
-        for (boolean popup : new boolean[] {false, true}) {
-            for (String arm : new String[] {"base", "fixed"}) {
-                int fail = 0;
-                int n = 60;
-                for (int r = 0; r < n; r++) {
-                    goTo("confirmdialog/confirmDialog003.xhtml?popup=" + popup);
+    void window() throws Exception {
+        for (String arm : new String[] {"base", "fixed"}) {
+            StringBuilder at = new StringBuilder();
+            int fail = 0;
+            int n = 0;
+            for (int d = 40; d <= 90; d++) {
+                int f = 0;
+                for (int r = 0; r < 6; r++) {
+                    n++;
+                    goTo("confirmdialog/confirmDialog003.xhtml?popup=false");
                     element("form:select:0").sendKeys(Keys.ARROW_RIGHT);
-                    answer(popup, false);
-                    element("form:select:0").isSelected();
-                    element("form:select:1").isSelected();
-                    element("form:values").getText();
+                    answer(false, false);
+                    Thread.sleep(d);
                     if ("fixed".equals(arm)) {
                         awaitFocusReturn();
                     }
                     element("form:select:0").sendKeys(Keys.ARROW_RIGHT);
-                    if (!shown(popup, 5)) {
-                        fail++;
+                    if (!shown(false, 2)) {
+                        f++;
                     }
                 }
-                System.out.println("PROBE realistic popup=" + popup + " arm=" + arm + " failures=" + fail + "/" + n);
-            }
-        }
-    }
-
-    @Test
-    @Order(3)
-    void sweep() throws Exception {
-        for (boolean popup : new boolean[] {false, true}) {
-            for (String arm : new String[] {"base", "fixed"}) {
-                StringBuilder at = new StringBuilder();
-                int fail = 0;
-                int n = 0;
-                for (int d = 0; d <= 240; d += 4) {
-                    int f = 0;
-                    for (int r = 0; r < 2; r++) {
-                        n++;
-                        goTo("confirmdialog/confirmDialog003.xhtml?popup=" + popup);
-                        element("form:select:0").sendKeys(Keys.ARROW_RIGHT);
-                        answer(popup, false);
-                        if (d > 0) {
-                            Thread.sleep(d);
-                        }
-                        if ("fixed".equals(arm)) {
-                            awaitFocusReturn();
-                        }
-                        element("form:select:0").sendKeys(Keys.ARROW_RIGHT);
-                        if (!shown(popup, 2)) {
-                            f++;
-                        }
-                    }
-                    fail += f;
-                    if (f > 0) {
-                        at.append(d).append("ms:").append(f).append(' ');
-                    }
+                fail += f;
+                if (f > 0) {
+                    at.append(d).append("ms:").append(f).append(' ');
                 }
-                System.out.println("PROBE sweep popup=" + popup + " arm=" + arm + " failures=" + fail + "/" + n + " delays=" + at);
             }
+            System.out.println("PROBE window arm=" + arm + " failures=" + fail + "/" + n + " delays=" + at);
         }
     }
 

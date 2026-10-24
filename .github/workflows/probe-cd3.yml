@@ -28,5 +28,5 @@ jobs:
           sleep 2; pgrep -c stress-ng
       - name: Probe
         run: |
-          mvn -B clean install -fprimefaces-integration-tests/pom.xml -Pintegration-tests,headless,chrome,theme-aura,csp,mojarra-4.0 -Dit.test=ConfirmDialog003ProbeTest -Dcheckstyle.skip -Dlicense.skip=true > probe.log 2>&1 || echo "mvn exit $?"
-          grep -E "PROBE|Tests run:|ERROR\]" probe.log | head -60
+          mvn -B clean install -fprimefaces-integration-tests/pom.xml -Pintegration-tests,headless,chrome,theme-aura,csp,mojarra-4.0 -Dit.test=ConfirmDialog003ProbeTest,ConfirmDialog001Test,ConfirmDialog002Test,ConfirmDialog003Test -Dcheckstyle.skip -Dlicense.skip=true > probe.log 2>&1 || echo "mvn exit $?"
+          grep -E "PROBE|Tests run:|<<<" probe.log | head -80
