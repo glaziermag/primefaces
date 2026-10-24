@@ -1,0 +1,28 @@
+name: verify-fix
+on:
+  push:
+    branches: [verify-fix]
+  workflow_dispatch:
+jobs:
+  it:
+    runs-on: ubuntu-latest
+    name: IT (Java ${{ matrix.java }} - ${{ matrix.facesimpl }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - java: 17
+            facesimpl: 'myfaces-4.0'
+          - java: 25
+            facesimpl: 'mojarra-4.1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Build (checkstyle + license on)
+        run: mvn clean install -T1C -DskipTests -Djsdoc.skip.typedoc=true -Dmaven.javadoc.skip=true --batch-mode --show-version
+      - name: Integration Tests (build.yml profiles, ConfirmDialog* only)
+        run: mvn -B -V clean install -fprimefaces-integration-tests/pom.xml -Pintegration-tests,parallel-execution,headless,chrome,theme-aura,csp,${{ matrix.facesimpl }} -Dit.test='ConfirmDialog*Test'
