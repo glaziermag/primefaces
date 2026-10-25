@@ -62,11 +62,14 @@ class Schedule001ProbeTest extends AbstractPrimePageTest {
 
     @Test
     void probe() {
-        int n = Integer.getInteger("probe.n", 30);
+        int n = Integer.getInteger("probe.n", 60);
+        int[] fails = new int[2];
         int fail = 0;
         int errors = 0;
         for (int r = 0; r < n; r++) {
             String stage = "goTo";
+            boolean fixed = r % 2 == 1;
+            String arm = fixed ? "fixed" : "base";
             try {
                 Schedule001Test.Page page = PrimeSelenium.goTo(Schedule001Test.Page.class);
                 PrimeSelenium.executeScript(HOOK);
@@ -75,6 +78,9 @@ class Schedule001ProbeTest extends AbstractPrimePageTest {
                 // same WebDriver call sequence as Schedule001Test.eventSelect up to line 186
                 stage = "first";
                 waitForScheduledRenderedAndClickable();
+                if (fixed) {
+                    waitDoubleClickWindow(schedule);
+                }
                 schedule.select("fc-daygrid-event");
                 stage = "assert1";
                 page.messages.getMessage(0);
@@ -88,6 +94,9 @@ class Schedule001ProbeTest extends AbstractPrimePageTest {
                 waitForScheduledRenderedAndClickable();
                 stage = "second";
                 waitForScheduledRenderedAndClickable();
+                if (fixed) {
+                    waitDoubleClickWindow(schedule);
+                }
                 boolean ok = true;
                 try {
                     schedule.select("fc-daygrid-event");
@@ -95,16 +104,22 @@ class Schedule001ProbeTest extends AbstractPrimePageTest {
                 catch (TimeoutException e) {
                     ok = false;
                     fail++;
+                    fails[fixed ? 1 : 0]++;
                 }
                 Object sig = PrimeSelenium.executeScript("return (function(){" + SIG + "}).apply(null, arguments);", ok ? 300 : 4000);
-                System.out.println("PROBE r=" + r + (ok ? " ok " : " FAIL ") + sig);
+                System.out.println("PROBE arm=" + arm + " r=" + r + (ok ? " ok " : " FAIL ") + sig);
             }
             catch (RuntimeException e) {
                 errors++;
-                System.out.println("PROBE err r=" + r + " stage=" + stage + " " + e.getClass().getSimpleName() + " " + String.valueOf(e.getMessage()).split("\n")[0]);
+                System.out.println("PROBE err arm=" + arm + " r=" + r + " stage=" + stage + " " + e.getClass().getSimpleName() + " " + String.valueOf(e.getMessage()).split("\n")[0]);
             }
         }
-        System.out.println("PROBE summary n=" + n + " fail=" + fail + " errors=" + errors);
+        System.out.println("PROBE summary n=" + n + " fail=" + fail + " baseFail=" + fails[0] + "/" + (n + 1) / 2 + " fixedFail=" + fails[1] + "/" + n / 2 + " errors=" + errors);
+    }
+
+    private void waitDoubleClickWindow(Schedule schedule) {
+        PrimeSelenium.waitGui().until(d -> Boolean.TRUE.equals(PrimeSelenium.executeScript(
+                "return " + schedule.getWidgetByIdScript() + ".doubleClick == null;")));
     }
 
     private void waitForScheduledRenderedAndClickable() {
