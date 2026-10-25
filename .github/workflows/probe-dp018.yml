@@ -1,0 +1,32 @@
+name: probe-dp018
+on:
+  push:
+    branches: [probe-dp018]
+  workflow_dispatch:
+jobs:
+  probe:
+    name: ${{ matrix.profile }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - 'chrome,theme-lara,myfaces-4.0'
+          - 'firefox,theme-lara,myfaces-4.0'
+          - 'chrome,csp,theme-nora,mojarra-4.0'
+          - 'chrome,csp,theme-aura,mojarra-4.0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-firefox@v1
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Build
+        run: mvn clean install -T1C -DskipTests -Dcheckstyle.skip -Djsdoc.skip.typedoc=true -Dmaven.javadoc.skip=true --batch-mode -q
+      - name: Probe
+        run: |
+          mvn -B clean install -fprimefaces-integration-tests/pom.xml -Pintegration-tests,headless,${{ matrix.profile }} -Dit.test=DatePicker018ProbeTest,DatePicker018Test -Dcheckstyle.skip > probe.log 2>&1 || echo "mvn exit $?"
+          grep -E "PROBE|Tests run:|<<<" probe.log | head -40
