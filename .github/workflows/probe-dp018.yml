@@ -29,4 +29,4 @@ jobs:
       - name: Probe
         run: |
           mvn -B clean install -fprimefaces-integration-tests/pom.xml -Pintegration-tests,headless,${{ matrix.profile }} -Dit.test=DatePicker018ProbeTest,DatePicker018Test -Dcheckstyle.skip > probe.log 2>&1 || echo "mvn exit $?"
-          grep -E "PROBE|Tests run:|<<<" probe.log | head -40
+          grep -E "PROBE|Tests run:|<<<" probe.log | head -40; grep -A12 "<<< ERROR" probe.log | head -60

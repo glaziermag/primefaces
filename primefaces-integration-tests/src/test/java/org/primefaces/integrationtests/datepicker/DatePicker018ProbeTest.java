@@ -41,7 +41,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 // fork-only probe, not for upstream
 class DatePicker018ProbeTest extends AbstractPrimePageTest {
 
-    private static final String HOOK = "var i=PrimeFaces.getWidgetById('form:datepicker').jqEl.datePicker('instance');"
+    private static final String HOOK = "var i=PrimeFaces.getWidgetById('form:datepicker').jq.data('primeDatePicker');"
             + "window.__entered=null;window.__clickAt=null;window.__dpc=null;"
             + "var o=i.bindDocumentClickListener;"
             + "i.bindDocumentClickListener=function(){window.__entered=performance.now();return o.apply(this,arguments);};"
@@ -71,7 +71,7 @@ class DatePicker018ProbeTest extends AbstractPrimePageTest {
                 page.dateSelectCount.getText();
                 if ("fixed".equals(arm)) {
                     PrimeSelenium.waitGui().until(d -> Boolean.FALSE.equals(PrimeSelenium.executeScript(
-                            "return " + datePicker.getWidgetByIdScript() + ".jqEl.datePicker('instance').datepickerClick;")));
+                            "return " + datePicker.getWidgetByIdScript() + ".jq.data('primeDatePicker').datepickerClick;")));
                 }
                 PrimeSelenium.executeScript("return 1;"); // stands in for the guardAjax script round-trip
                 page.outside.click();
