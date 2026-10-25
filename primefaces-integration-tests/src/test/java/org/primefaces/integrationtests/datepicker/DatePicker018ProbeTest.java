@@ -57,22 +57,30 @@ class DatePicker018ProbeTest extends AbstractPrimePageTest {
             int dpcTrueFail = 0;
             int dpcFalseFail = 0;
             List<String> rows = new ArrayList<>();
+            int errors = 0;
             for (int r = 0; r < n; r++) {
+                String stage = "goTo";
+                try {
                 DatePicker018Test.Page page = PrimeSelenium.goTo(DatePicker018Test.Page.class);
                 PrimeSelenium.executeScript(HOOK);
                 DatePicker datePicker = page.datepicker;
                 // same WebDriver call sequence as DatePicker018Test.timeInputCommit
+                stage = "showPanel";
                 WebElement panel = datePicker.showPanel();
                 WebElement minuteInput = panel.findElement(By.cssSelector(".ui-minute-picker input"));
                 minuteInput.getAttribute("value");
                 page.dateSelectCount.getText();
+                stage = "type";
                 minuteInput.sendKeys(Keys.CONTROL, "a", Keys.BACK_SPACE);
                 minuteInput.sendKeys("05");
+                stage = "count0";
                 page.dateSelectCount.getText();
+                stage = "guardWait";
                 if ("fixed".equals(arm)) {
                     PrimeSelenium.waitGui().until(d -> Boolean.FALSE.equals(PrimeSelenium.executeScript(
                             "return " + datePicker.getWidgetByIdScript() + ".jq.data('primeDatePicker').datepickerClick;")));
                 }
+                stage = "click";
                 PrimeSelenium.executeScript("return 1;"); // stands in for the guardAjax script round-trip
                 page.outside.click();
                 boolean committed;
@@ -101,8 +109,20 @@ class DatePicker018ProbeTest extends AbstractPrimePageTest {
                     dpcFalseFail++;
                 }
                 rows.add(dt + (t ? "T" : "F") + (committed ? "+" : "-"));
+                }
+                catch (RuntimeException e) {
+                    errors++;
+                    StackTraceElement at = null;
+                    for (StackTraceElement el : e.getStackTrace()) {
+                        if (el.getClassName().startsWith("org.primefaces")) {
+                            at = el;
+                            break;
+                        }
+                    }
+                    System.out.println("PROBE err arm=" + arm + " r=" + r + " stage=" + stage + " " + e.getClass().getSimpleName() + " at " + at);
+                }
             }
-            System.out.println("PROBE arm=" + arm + " n=" + n + " fail=" + fail + " dpcTrue=" + dpcTrue
+            System.out.println("PROBE arm=" + arm + " n=" + n + " errors=" + errors + " fail=" + fail + " dpcTrue=" + dpcTrue
                     + " dpcTrueFail=" + dpcTrueFail + " dpcFalseFail=" + dpcFalseFail + " rows(dtMs,dpc,committed)=" + rows);
         }
     }

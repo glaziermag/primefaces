@@ -13,9 +13,7 @@ jobs:
       matrix:
         profile:
           - 'chrome,theme-lara,myfaces-4.0'
-          - 'firefox,theme-lara,myfaces-4.0'
           - 'chrome,csp,theme-nora,mojarra-4.0'
-          - 'chrome,csp,theme-aura,mojarra-4.0'
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-firefox@v1
