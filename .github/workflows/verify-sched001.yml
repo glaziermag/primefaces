@@ -1,0 +1,42 @@
+name: verify-sched001
+on:
+  push:
+    branches: [verify-sched001]
+  workflow_dispatch:
+jobs:
+  verify:
+    name: Java ${{ matrix.java }}, ${{ matrix.profile }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {java: 17, profile: 'firefox,theme-lara,myfaces-4.0'}
+          - {java: 17, profile: 'firefox,csp,theme-lara,myfaces-4.0'}
+          - {java: 17, profile: 'chrome,theme-lara,myfaces-4.0'}
+          - {java: 17, profile: 'chrome,csp,theme-nora,myfaces-4.0'}
+          - {java: 17, profile: 'chrome,csp,theme-nora,mojarra-4.0'}
+          - {java: 17, profile: 'chrome,client-state-saving,theme-nora,mojarra-4.0'}
+          - {java: 21, profile: 'firefox,theme-lara,myfaces-4.1'}
+          - {java: 21, profile: 'firefox,csp,theme-lara,myfaces-4.1'}
+          - {java: 21, profile: 'chrome,theme-lara,myfaces-4.1'}
+          - {java: 21, profile: 'chrome,csp,theme-nora,myfaces-4.1'}
+          - {java: 21, profile: 'chrome,csp,theme-nora,mojarra-4.1'}
+          - {java: 21, profile: 'chrome,client-state-saving,theme-nora,mojarra-4.1'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-firefox@v1
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Build
+        run: mvn clean install -T1C -DskipTests -Djsdoc.skip.typedoc=true -Dmaven.javadoc.skip=true --batch-mode -q
+      - name: Verify
+        run: |
+          for i in 1 2 3; do
+            mvn -B install -fprimefaces-integration-tests/pom.xml -Pintegration-tests,headless,${{ matrix.profile }} -Dit.test=Schedule001Test > v$i.log 2>&1 || echo "VERIFY run $i mvn exit $?"
+            grep -hE "Tests run:.*in org|<<<|BUILD (SUCCESS|FAILURE)|checkstyle.*(violation|ERROR)" v$i.log | sed "s/^/VERIFY run $i: /" | head -6
+          done
