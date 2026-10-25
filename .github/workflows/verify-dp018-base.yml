@@ -1,7 +1,7 @@
-name: verify-dp018
+name: verify-dp018-base
 on:
   push:
-    branches: [verify-dp018]
+    branches: [verify-dp018-base]
   workflow_dispatch:
 jobs:
   verify:
